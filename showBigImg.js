@@ -12,7 +12,6 @@ var showBigImg = ( function($){
         init: function( imgSrcArr ){
 
             this.imgSrcArr = imgSrcArr;
-            this.currentIndex = 0;
 
             this.appendHtml(); // 插入html元素
             this.setElementStyle(); // 设置元素的位置、样式
@@ -50,7 +49,7 @@ var showBigImg = ( function($){
                 $(this).css( 'top', _top + 'px' );
             });
 
-            // 大图
+            // 大图 的宽、高
             var _windowWidth = $(window).width();
             var _windowHeight = $(window).height();
             _self.$showBigImg.find('.showBigImg_imgBox').css({
@@ -65,6 +64,10 @@ var showBigImg = ( function($){
                 'max-width': _windowWidth * 0.8 + 'px',
                 'max-height': _windowHeight * 0.8 + 'px',
             });
+
+            // 显示 this.currentIndex 的图片
+            _self.$showBigImg.find('.showBigImg_imgBox').css( 'left', -_windowWidth * _self.currentIndex + 'px' );
+
 
             // 不在css中设置动画效果，防止一打开大图的时候，有从右向左滑动的动画
             setTimeout( function(){
@@ -82,6 +85,7 @@ var showBigImg = ( function($){
 
         // 按钮事件
         addBtnEvent: function(){
+
             var _self = this;
             var _windowWidth = $(window).width();
             var $showBigImg_imgBox = this.$showBigImg.find('.showBigImg_imgBox'); // 承载所有图片的容器
@@ -110,9 +114,22 @@ var showBigImg = ( function($){
             });
         },
 
-        // 打开大图
-        show: function( imgSrcArr ){
-            this.init( imgSrcArr );
+        // 打开大图（被点击的小图的jq对象）
+        show: function( $img ){
+
+            //console.log( $img );
+            var $imgArr = $img.parent().children('img');// 同级所有图片、包括被点击的图片本身
+            var imgSrcArr = [];// 所有图片的 src
+
+            // 遍历所有图片
+            $imgArr.each( function( index, value ){
+                imgSrcArr.push( value.src );
+            });
+
+            this.currentIndex = $img.prevAll().length; // 当前显示图片 的下标（ == 被点击的小图前面的图片数量）
+            //console.log( this.currentIndex );
+
+            this.init( imgSrcArr );// 初始化
         },
 
         // 关闭大图

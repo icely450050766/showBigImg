@@ -7,16 +7,18 @@
 
     <script src="//apps.bdimg.com/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="showBigImg.js"></script>
-</head>
-<body>
-<button onclick="showBigImg.show( imgSrcArr );">showPic</button>
 
-<script>
-    var imgSrcArr = [
-            'img/file.png',
-            'img/image-1.jpg',
-            'img/addPictureBtn.png',
-    ];
-</script>
+    <style>
+        img{
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+
+<body>
+<img src="img/file.png" onclick="showBigImg.show( $(this) );">
+<img src="img/image-1.jpg" onclick="showBigImg.show( $(this) );">
+<img src="img/addPictureBtn.png" onclick="showBigImg.show( $(this) );">
 </body>
 </html>
