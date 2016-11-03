@@ -1,21 +1,27 @@
 /**
  * Created by Administrator on 2016/11/1.
  */
+// 显示大图插件（某一时刻只显示一组大图，因此不需要用类，用对象实现即可）
 var showBigImg = ( function($){
     return{
 
         $showBigImg: null,
-        imgSrcArr: [],// 图片数组
+        imgSrcArr: [],// 图片 src数组
         currentIndex: 0,// 当前显示图片下标
 
-        // 初始化
-        init: function( imgSrcArr ){
+        // 初始化（参数：所有小图的公共父亲，可以是祖父或以上层级）
+        init: function( $imgParent ){
 
-            this.imgSrcArr = imgSrcArr;
+            var _self = this;
+            var $imgArr = $imgParent.find('img'); // 所有图片
 
-            this.appendHtml(); // 插入html元素
-            this.setElementStyle(); // 设置元素的位置、样式
-            this.addBtnEvent(); // 按钮事件
+            // 每个小图点击事件（闭包）
+            $imgArr.each( function( index, value ){
+                $(this).click( function(){
+                    _self.show( $(this), index, $imgArr );// 显示大图（插入html）
+                });
+            });
+
         },
 
         // 插入html元素
@@ -27,18 +33,18 @@ var showBigImg = ( function($){
             }
 
             var _content = '<div class="showBigImg">' +
-                            '<div class="showBigImg_opBtn showBigImg_closeBtn"> &times </div>' +
-                            '<div class="showBigImg_opBtn showBigImg_lastImgBtn"> < </div>' +
-                            '<div class="showBigImg_opBtn showBigImg_nextImgBtn"> > </div>' +
-                            '<div class="showBigImg_imgBox">' + _img + '</div>' +
-                        '</div>';
+                                '<div class="showBigImg_opBtn showBigImg_closeBtn"> <i class="fa fa-close"></i>  </div>' +
+                                '<div class="showBigImg_opBtn showBigImg_lastImgBtn"> <i class="fa fa-angle-left"></i> </div>' +
+                                '<div class="showBigImg_opBtn showBigImg_nextImgBtn"> <i class="fa fa-angle-right"></i> </div>' +
+                                '<div class="showBigImg_imgBox">' + _img + '</div>' +
+                            '</div>';
 
             this.$showBigImg = $( _content );
             this.$showBigImg.css( 'opacity', '0' ).animate( { opacity: 1 }, 300 );// 动画（开始完全透明（不显示）增加透明度）
             $('body').append( this.$showBigImg );
         },
 
-        // 设置元素的位置、样式
+        // 设置元素的位置、样式，并显示 this.currentIndex 的图片
         setElementStyle: function(){
 
             var _self = this;
@@ -114,11 +120,10 @@ var showBigImg = ( function($){
             });
         },
 
-        // 打开大图（被点击的小图的jq对象）
-        show: function( $img ){
+        // 打开大图（ $img被点击的小图的jq对象，index是被点击小图下标，$imgArr是所有图片的jq对象数组 ）
+        show: function( $img, index, $imgArr ){
 
             //console.log( $img );
-            var $imgArr = $img.parent().children('img');// 同级所有图片、包括被点击的图片本身
             var imgSrcArr = [];// 所有图片的 src
 
             // 遍历所有图片
@@ -126,10 +131,15 @@ var showBigImg = ( function($){
                 imgSrcArr.push( value.src );
             });
 
-            this.currentIndex = $img.prevAll().length; // 当前显示图片 的下标（ == 被点击的小图前面的图片数量）
+            this.currentIndex = index; // 当前显示图片 的下标（ == 被点击的小图前面的图片数量）
             //console.log( this.currentIndex );
 
-            this.init( imgSrcArr );// 初始化
+            // 初始化
+            this.imgSrcArr = imgSrcArr;// 图片 src数组
+
+            this.appendHtml(); // 插入html元素
+            this.setElementStyle(); // 设置元素的位置、样式，并显示 this.currentIndex 的图片
+            this.addBtnEvent(); // 按钮事件
         },
 
         // 关闭大图
