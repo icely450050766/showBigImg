@@ -11,7 +11,7 @@
 /* ²Ù×÷°´Å¥ */
 .showBigImg .showBigImg_opBtn{
     background: rgba(255,255,255,0.08);
-    color: #ffffff;
+    color: rgba(255,255,255,0.6);
     border-radius: 6px;
     font-size: 80px;
     padding: 5px;
@@ -21,6 +21,13 @@
 }
 .showBigImg .showBigImg_opBtn:hover{
     background: rgba(255,255,255,0.2);
+    color: #ffffff
+}
+
+/* ×óÓÒÇÐ»»Í¼Æ¬ °´Å¥ */
+.showBigImg .showBigImg_lastImgBtn,
+.showBigImg .showBigImg_nextImgBtn{
+    /*top: 45%;*/
 }
 .showBigImg .showBigImg_lastImgBtn{
     left: 3%;
@@ -28,10 +35,28 @@
 .showBigImg .showBigImg_nextImgBtn{
     right: 3%;
 }
-.showBigImg .showBigImg_closeBtn{
+
+/* ¹Ø±Õ¡¢Ðý×ª°´Å¥ */
+.showBigImg .showBigImg_closeBtn,
+.showBigImg .showBigImg_rotateLeftBtn,
+.showBigImg .showBigImg_rotateRightBtn,
+.showBigImg .showBigImg_saveBtn{
     font-size: 25px;
     right: 3%;
+    max-height: 8%;
+}
+.showBigImg .showBigImg_closeBtn{
     top: 3%;
+}
+.showBigImg .showBigImg_rotateLeftBtn{
+    top: 11%;
+}
+.showBigImg .showBigImg_rotateRightBtn{
+    top: 19%;
+}
+.showBigImg .showBigImg_saveBtn{
+    top: 27%;
+    /*display: none;*/
 }
 
 /* Í¼Æ¬ */
@@ -57,4 +82,13 @@
     position: relative;
     font-size: 0px;
     text-align: center;
+}
+
+/* Í¼Æ¬Ðý×ª ¶¯»­Ð§¹û */
+.showBigImg .showBigImg_imgBox > .imgDiv > img{
+    -webkit-transition: all 0.5s;
+    -moz-transition: all 0.5s;
+    -ms-transition: all 0.5s;
+    -o-transition: all 0.5s;
+    transition: all 0.5s;
 }

@@ -1,7 +1,9 @@
 /**
  * Created by Administrator on 2016/11/1.
  */
-// 显示大图插件（某一时刻只显示一组大图，因此不需要用类，用对象实现即可）
+// 显示大图插件（某一时刻只显示一组大图，因此不需要用类，用对象实现即可。）
+// 用“闭包” 实现 多个对象 的功能 （一个对象 根据情况 修改为 其他多个对象）
+
 var showBigImg = ( function($){
     return{
 
@@ -9,11 +11,11 @@ var showBigImg = ( function($){
         imgSrcArr: [],// 图片 src数组
         currentIndex: 0,// 当前显示图片下标
 
-        // 初始化（参数：所有小图的公共父亲，可以是祖父或以上层级）
+        // 初始化（参数：所有小图的公共父亲，可以是祖父或以上层级）（闭包 实现多个对象）
         init: function( $imgParent ){
 
             var _self = this;
-            var $imgArr = $imgParent.find('img'); // 所有图片
+            var $imgArr = $imgParent.find('img'); // 所有图片（闭包）
 
             // 每个小图点击事件（闭包）
             $imgArr.each( function( index, value ){
@@ -21,7 +23,6 @@ var showBigImg = ( function($){
                     _self.show( $(this), index, $imgArr );// 显示大图（插入html）
                 });
             });
-
         },
 
         // 插入html元素
@@ -29,13 +30,20 @@ var showBigImg = ( function($){
 
             var _img = '';
             for( var i=0; i < this.imgSrcArr.length; i++ ){
-                _img += '<div class="imgDiv"><img src="' + this.imgSrcArr[i] + '"></div>';
+
+                // rotateTemp 保存临时的 旋转角度；（保证前端视觉效果，避免 保存后再旋转，旋转方向反过来了）
+                // rotateSave 保存 最终保存到数据库的 旋转角度（保存后改属性值清0）
+                _img += '<div class="imgDiv"> <img src="' + this.imgSrcArr[i] + '" rotateTemp="0" rotateSave="0"> </div>';
             }
 
             var _content = '<div class="showBigImg">' +
-                                '<div class="showBigImg_opBtn showBigImg_closeBtn"> <i class="fa fa-close"></i>  </div>' +
-                                '<div class="showBigImg_opBtn showBigImg_lastImgBtn"> <i class="fa fa-angle-left"></i> </div>' +
-                                '<div class="showBigImg_opBtn showBigImg_nextImgBtn"> <i class="fa fa-angle-right"></i> </div>' +
+                                '<div class="showBigImg_opBtn showBigImg_closeBtn"> <i class="fa fa-close" title="关闭"></i> </div>' +
+                                '<div class="showBigImg_opBtn showBigImg_rotateLeftBtn"> <i class="fa fa-rotate-left" title="左转"></i> </div>' +
+                                '<div class="showBigImg_opBtn showBigImg_rotateRightBtn"> <i class="fa fa-rotate-right" title="右转"></i> </div>' +
+                                '<div class="showBigImg_opBtn showBigImg_saveBtn"> <i class="fa fa-save" title="保存"></i> </div>' +
+
+                                '<div class="showBigImg_opBtn showBigImg_lastImgBtn"> <i class="fa fa-angle-left" title="上一张"></i> </div>' +
+                                '<div class="showBigImg_opBtn showBigImg_nextImgBtn"> <i class="fa fa-angle-right" title="下一张"></i> </div>' +
                                 '<div class="showBigImg_imgBox">' + _img + '</div>' +
                             '</div>';
 
@@ -50,8 +58,8 @@ var showBigImg = ( function($){
             var _self = this;
 
             // 上一张、下一张 按钮 高度
-            _self.$showBigImg.find('.showBigImg_opBtn:not(".showBigImg_closeBtn")').each( function( index, value ){
-                var _top = ( $(window).height() - $(this).height() ) / 2.5;
+            _self.$showBigImg.find('.showBigImg_opBtn.showBigImg_lastImgBtn, .showBigImg_opBtn.showBigImg_nextImgBtn').each( function( index, value ){
+                var _top = ( $(window).height() - $(this).height() ) / 2.2;
                 $(this).css( 'top', _top + 'px' );
             });
 
@@ -73,7 +81,7 @@ var showBigImg = ( function($){
 
             // 显示 this.currentIndex 的图片
             _self.$showBigImg.find('.showBigImg_imgBox').css( 'left', -_windowWidth * _self.currentIndex + 'px' );
-
+            _self.judgeIsHideBtnByCurrentIndex(); // 判断是否隐藏“上一张”“下一张”按钮
 
             // 不在css中设置动画效果，防止一打开大图的时候，有从右向左滑动的动画
             setTimeout( function(){
@@ -88,6 +96,17 @@ var showBigImg = ( function($){
             }, 0);
         },
 
+        // 根据 this.currentIndex，判断是否隐藏“上一张”“下一张”按钮
+        judgeIsHideBtnByCurrentIndex: function() {
+
+            // 第一页，隐藏“上一张”按钮
+            if( !this.currentIndex ) this.$showBigImg.find('.showBigImg_lastImgBtn').hide();
+            else  this.$showBigImg.find('.showBigImg_lastImgBtn').show();
+
+            // 最后一页，隐藏“下一张”按钮
+            if( this.currentIndex == this.imgSrcArr.length - 1 ) this.$showBigImg.find('.showBigImg_nextImgBtn').hide();
+            else this.$showBigImg.find('.showBigImg_nextImgBtn').show();
+        },
 
         // 按钮事件
         addBtnEvent: function(){
@@ -103,6 +122,8 @@ var showBigImg = ( function($){
 
                 _self.currentIndex --;
                 $showBigImg_imgBox.css( 'left', -_windowWidth * _self.currentIndex + 'px' );
+
+                _self.judgeIsHideBtnByCurrentIndex(); // 判断是否隐藏“上一张”“下一张”按钮
             });
 
             // 下一张
@@ -112,12 +133,50 @@ var showBigImg = ( function($){
 
                 _self.currentIndex ++;
                 $showBigImg_imgBox.css( 'left', - _windowWidth * _self.currentIndex + 'px' );
+
+                _self.judgeIsHideBtnByCurrentIndex(); // 判断是否隐藏“上一张”“下一张”按钮
             });
 
             // 关闭
             this.$showBigImg.find('.showBigImg_closeBtn').off('click').on('click', function(){
                 _self.close();// 关闭
             });
+
+
+            // 保存
+            this.$showBigImg.find('.showBigImg_saveBtn').off('click').on('click', function(){
+                var $bigImg = _self.$showBigImg.find('.showBigImg_imgBox .imgDiv > img').eq( _self.currentIndex ); // 正在编辑的大图 img jq对象
+
+                var _url = $bigImg.attr('src'); // 取整数
+                var _rotateSave = parseInt( $bigImg.attr('rotateSave') ); // 取整数
+                console.log( _url + '：' + _rotateSave );
+
+                // 保存成功后：
+                $bigImg.attr( 'rotateSave', 0 );
+            });
+
+            // 左转
+            this.$showBigImg.find('.showBigImg_rotateLeftBtn').off('click').on('click', function(){
+                rotateImg( -90 );
+            });
+
+            // 右转
+            this.$showBigImg.find('.showBigImg_rotateRightBtn').off('click').on('click', function(){
+                rotateImg( 90 );
+            });
+
+            // （辅助函数）参数：旋转角度（左-90，右90）
+            function rotateImg( rotateDeg ){
+
+                var $bigImg = _self.$showBigImg.find('.showBigImg_imgBox .imgDiv > img').eq( _self.currentIndex ); // 正在编辑的大图 img jq对象
+
+                var _rotateTemp = parseInt( $bigImg.attr('rotateTemp') ) + rotateDeg; // 取整数，旋转后的属性值
+                var _rotateSave = parseInt( $bigImg.attr('rotateSave') ) + rotateDeg; // 取整数，旋转后的属性值
+
+                $bigImg.css( 'transform', 'rotate(' + _rotateTemp + 'deg)')
+                    .attr( 'rotateTemp', _rotateTemp )
+                    .attr( 'rotateSave', _rotateSave );
+            }
         },
 
         // 打开大图（ $img被点击的小图的jq对象，index是被点击小图下标，$imgArr是所有图片的jq对象数组 ）
@@ -135,7 +194,7 @@ var showBigImg = ( function($){
             //console.log( this.currentIndex );
 
             // 初始化
-            this.imgSrcArr = imgSrcArr;// 图片 src数组
+            this.imgSrcArr = imgSrcArr;// 图片 src数组（每次点开大图，都会修改该属性）
 
             this.appendHtml(); // 插入html元素
             this.setElementStyle(); // 设置元素的位置、样式，并显示 this.currentIndex 的图片
