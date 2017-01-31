@@ -8,8 +8,10 @@ var showBigImg = ( function($){
     return{
 
         $showBigImg: null,
-        imgSrcArr: [],// 图片 src数组
         currentIndex: 0,// 当前显示图片下标
+
+        imgSrcArr: [],// 大图图片 src数组
+        remarkArr: [],// 图片备注
 
         // 初始化（参数：所有小图的公共父亲，可以是祖父或以上层级）（闭包 实现多个对象）
         init: function( $imgParent ){
@@ -20,6 +22,8 @@ var showBigImg = ( function($){
             // 每个小图点击事件（闭包）
             $imgArr.each( function( index, value ){
                 $(this).click( function(){
+
+                    // 每次点击，执行show()，重新赋值 $showBigImg、currentIndex、imgSrcArr、remarkArr
                     _self.show( $(this), index, $imgArr );// 显示大图（插入html）
                 });
             });
@@ -33,7 +37,7 @@ var showBigImg = ( function($){
 
                 // rotateTemp 保存临时的 旋转角度；（保证前端视觉效果，避免 保存后再旋转，旋转方向反过来了）
                 // rotateSave 保存 最终保存到数据库的 旋转角度（保存后改属性值清0）
-                _img += '<div class="imgDiv"> <img src="' + this.imgSrcArr[i] + '" rotateTemp="0" rotateSave="0"> </div>';
+                _img += '<div class="imgDiv"> <img src="' + this.imgSrcArr[i] + '" remark="' +  this.remarkArr[i] + '" rotateTemp="0" rotateSave="0"> </div>';
             }
 
             var _content = '<div class="showBigImg">' +
@@ -45,6 +49,7 @@ var showBigImg = ( function($){
                                 '<div class="showBigImg_opBtn showBigImg_lastImgBtn"> <i class="fa fa-angle-left" title="上一张"></i> </div>' +
                                 '<div class="showBigImg_opBtn showBigImg_nextImgBtn"> <i class="fa fa-angle-right" title="下一张"></i> </div>' +
                                 '<div class="showBigImg_imgBox">' + _img + '</div>' +
+                                '<div class="showBigImg_remarkBox"></div>' +
                             '</div>';
 
             this.$showBigImg = $( _content );
@@ -79,8 +84,9 @@ var showBigImg = ( function($){
                 'max-height': _windowHeight * 0.8 + 'px',
             });
 
-            // 显示 this.currentIndex 的图片
+            // 显示 this.currentIndex 的图片、备注
             _self.$showBigImg.find('.showBigImg_imgBox').css( 'left', -_windowWidth * _self.currentIndex + 'px' );
+            _self.$showBigImg.find('.showBigImg_remarkBox').text( _self.remarkArr[_self.currentIndex] );
             _self.judgeIsHideBtnByCurrentIndex(); // 判断是否隐藏“上一张”“下一张”按钮
 
             // 不在css中设置动画效果，防止一打开大图的时候，有从右向左滑动的动画
@@ -114,6 +120,7 @@ var showBigImg = ( function($){
             var _self = this;
             var _windowWidth = $(window).width();
             var $showBigImg_imgBox = this.$showBigImg.find('.showBigImg_imgBox'); // 承载所有图片的容器
+            var $showBigImg_remarkBox = this.$showBigImg.find('.showBigImg_remarkBox'); // 图片备注容器
 
             // 上一张
             this.$showBigImg.find('.showBigImg_lastImgBtn').off('click').on('click', function(){
@@ -122,6 +129,7 @@ var showBigImg = ( function($){
 
                 _self.currentIndex --;
                 $showBigImg_imgBox.css( 'left', -_windowWidth * _self.currentIndex + 'px' );
+                $showBigImg_remarkBox.text( _self.remarkArr[_self.currentIndex] );
 
                 _self.judgeIsHideBtnByCurrentIndex(); // 判断是否隐藏“上一张”“下一张”按钮
             });
@@ -133,6 +141,7 @@ var showBigImg = ( function($){
 
                 _self.currentIndex ++;
                 $showBigImg_imgBox.css( 'left', - _windowWidth * _self.currentIndex + 'px' );
+                $showBigImg_remarkBox.text( _self.remarkArr[_self.currentIndex] );
 
                 _self.judgeIsHideBtnByCurrentIndex(); // 判断是否隐藏“上一张”“下一张”按钮
             });
@@ -182,23 +191,31 @@ var showBigImg = ( function($){
         // 打开大图（ $img被点击的小图的jq对象，index是被点击小图下标，$imgArr是所有图片的jq对象数组 ）
         show: function( $img, index, $imgArr ){
 
-            //console.log( $img );
-            var imgSrcArr = [];// 所有图片的 src
-
-            // 遍历所有图片
-            $imgArr.each( function( index, value ){
-                imgSrcArr.push( value.src );
-            });
-
             this.currentIndex = index; // 当前显示图片 的下标（ == 被点击的小图前面的图片数量）
             //console.log( this.currentIndex );
 
+            //console.log( $img );
+            var imgSrcArr = [];// 所有图片的 src
+            var remarkArr = [];// 图片备注
+
+            // 遍历所有图片
+            $imgArr.each( function( index, value ){
+                imgSrcArr.push( $(this).attr('bigImgSrc') );// 大图路径
+                remarkArr.push( judgeRemark( $(this).attr('remark') ) );// 图片备注
+            });
+
             // 初始化
             this.imgSrcArr = imgSrcArr;// 图片 src数组（每次点开大图，都会修改该属性）
+            this.remarkArr = remarkArr;
 
             this.appendHtml(); // 插入html元素
             this.setElementStyle(); // 设置元素的位置、样式，并显示 this.currentIndex 的图片
             this.addBtnEvent(); // 按钮事件
+
+            //（辅助函数）判断备注，若为空则显示“暂无备注”
+            function judgeRemark( str ){
+                return ( str == undefined  ||  str == null  || str == '' ) ? '（暂无备注）' : str;
+            }
         },
 
         // 关闭大图
